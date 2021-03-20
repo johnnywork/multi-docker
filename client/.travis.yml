@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t johnnywork/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run johnnywork/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t johnnywork/multi-client ./client
+  - docker build -t johnnywork/multi-nginx ./nginx
+  - docker build -t johnnywork/multi-server ./server
+  - docker build -t johnnywork/multi-worker ./worker
+  #login to docker hub
+  - echo "$DOCKER_PWD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push to docker hub
+  - docker push johnnywork/multi-client
+  - docker push johnnywork/multi-nginx
+  - docjer push johnnywork/multi-server
+  - docker push johnnywork/multi-worker
